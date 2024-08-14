@@ -48,10 +48,10 @@ struct dm_state {
     am_analyze_t *am_analyze;
     int analyze_pulses;
     file_info_t load_info;
-    list_t dumper;
+    list2_t dumper;
     */
     /* Protocol states */
-    list_t r_devs;
+    list2_t r_devs;
 
     pulse_data_t    pulse_data;
     /*
