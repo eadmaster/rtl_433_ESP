@@ -70,7 +70,7 @@ typedef struct r_cfg {
   int ppm_error;
   uint32_t out_block_size;
   char const *test_data;
-  list_t in_files;
+  list2_t in_files;
   char const *in_filename;
   int in_replay;
   volatile sig_atomic_t hop_now;
@@ -115,10 +115,10 @@ typedef struct r_cfg {
   struct r_device *devices;
   uint16_t num_r_devices;
 
-  // list_t data_tags;
-  list_t output_handler;
+  // list2_t data_tags;
+  list2_t output_handler;
   /*
-  list_t raw_handler;
+  list2_t raw_handler;
   */
   // int has_logout;
 
