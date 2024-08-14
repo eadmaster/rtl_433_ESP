@@ -14,12 +14,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-void list_ensure_size(list_t *list, size_t min_size)
+void list2_ensure_size(list2_t *list, size_t min_size)
 {
     if (!list->elems || list->size < min_size) {
         list->elems = realloc(list->elems, min_size * sizeof(*list->elems));
         if (!list->elems) {
-            FATAL_REALLOC("list_ensure_size()");
+            FATAL_REALLOC("list2_ensure_size()");
         }
         list->size  = min_size;
 
@@ -27,23 +27,23 @@ void list_ensure_size(list_t *list, size_t min_size)
     }
 }
 
-void list_push(list_t *list, void *p)
+void list2_push(list2_t *list, void *p)
 {
     if (list->len + 1 >= list->size) // account for terminating NULL
-        list_ensure_size(list, list->size < 8 ? 8 : list->size + list->size / 2);
+        list2_ensure_size(list, list->size < 8 ? 8 : list->size + list->size / 2);
 
     list->elems[list->len++] = p;
 
     list->elems[list->len] = NULL; // ensure a terminating NULL
 }
 
-void list_push_all(list_t *list, void **p)
+void list2_push_all(list2_t *list, void **p)
 {
     for (void **iter = p; iter && *iter; ++iter)
-        list_push(list, *iter);
+        list2_push(list, *iter);
 }
 
-void list_remove(list_t *list, size_t idx, list_elem_free_fn elem_free)
+void list2_remove(list2_t *list, size_t idx, list2_elem_free_fn elem_free)
 {
     if (idx >= list->len) {
         return; // report error?
@@ -57,7 +57,7 @@ void list_remove(list_t *list, size_t idx, list_elem_free_fn elem_free)
     list->len--;
 }
 
-void list_clear(list_t *list, list_elem_free_fn elem_free)
+void list2_clear(list2_t *list, list2_elem_free_fn elem_free)
 {
     if (elem_free) {
         for (size_t i = 0; i < list->len; ++i) { // list might contain NULLs
@@ -70,9 +70,9 @@ void list_clear(list_t *list, list_elem_free_fn elem_free)
     }
 }
 
-void list_free_elems(list_t *list, list_elem_free_fn elem_free)
+void list2_free_elems(list2_t *list, list2_elem_free_fn elem_free)
 {
-    list_clear(list, elem_free);
+    list2_clear(list, elem_free);
     free(list->elems);
     list->elems = NULL;
     list->size  = 0;
