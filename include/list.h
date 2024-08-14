@@ -9,36 +9,36 @@
     (at your option) any later version.
 */
 
-#ifndef INCLUDE_LIST_H_
-#define INCLUDE_LIST_H_
+#ifndef INCLUDE_list2_H_
+#define INCLUDE_list2_H_
 
 #include <stddef.h>
 
-/// Dynamically growing list, elems is always NULL terminated, call list_ensure_size() to alloc elems.
+/// Dynamically growing list, elems is always NULL terminated, call list2_ensure_size() to alloc elems.
 typedef struct list {
     void **elems;
     size_t size;
     size_t len;
-} list_t;
+} list2_t;
 
-typedef void (*list_elem_free_fn)(void *);
+typedef void (*list2_elem_free_fn)(void *);
 
 /// Alloc elems if needed and ensure the list has room for at least min_size elements.
-void list_ensure_size(list_t *list, size_t min_size);
+void list2_ensure_size(list2_t *list, size_t min_size);
 
 /// Add to the end of elems, allocs or grows the list if needed and ensures the list has a terminating NULL.
-void list_push(list_t *list, void *p);
+void list2_push(list2_t *list, void *p);
 
 /// Adds all elements of a NULL terminated list to the end of elems, allocs or grows the list if needed and ensures the list has a terminating NULL.
-void list_push_all(list_t *list, void **p);
+void list2_push_all(list2_t *list, void **p);
 
 /// Remove element from the list, frees element with fn.
-void list_remove(list_t *list, size_t idx, list_elem_free_fn elem_free);
+void list2_remove(list2_t *list, size_t idx, list2_elem_free_fn elem_free);
 
 /// Clear the list, frees each element with fn, does not free backing or list itself.
-void list_clear(list_t *list, list_elem_free_fn elem_free);
+void list2_clear(list2_t *list, list2_elem_free_fn elem_free);
 
 /// Clear the list, free backing, does not free list itself.
-void list_free_elems(list_t *list, list_elem_free_fn elem_free);
+void list2_free_elems(list2_t *list, list2_elem_free_fn elem_free);
 
-#endif /* INCLUDE_LIST_H_ */
+#endif /* INCLUDE_list2_H_ */
