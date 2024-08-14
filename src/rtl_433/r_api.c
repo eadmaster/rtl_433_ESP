@@ -150,8 +150,8 @@ cfg->conversion_mode = CONVERT_NATIVE;
 // abnormal messages and LOG_CRITICAL information.
 cfg->verbosity = LOG_WARNING;
 
-// list_ensure_size(&cfg->in_files, 100);
-// list_ensure_size(&cfg->output_handler, 16);
+// list2_ensure_size(&cfg->in_files, 100);
+// list2_ensure_size(&cfg->output_handler, 16);
 
 // collect devices list, this should be a module
 r_device r_devices[] = {
@@ -188,8 +188,8 @@ memcpy(cfg->devices, r_devices, sizeof(r_devices));
 
   // time(&cfg->frames_since);
 
-  // list_ensure_size(&cfg->demod->r_devs, 100);
-  // list_ensure_size(&cfg->demod->dumper, 32);
+  // list2_ensure_size(&cfg->demod->r_devs, 100);
+  // list2_ensure_size(&cfg->demod->dumper, 32);
 }
 
 r_cfg_t* r_create_cfg(void) {
@@ -216,24 +216,24 @@ void r_free_cfg(r_cfg_t *cfg) {
     if (dumper->file && (dumper->file != stdout))
       fclose(dumper->file);
   }
-  list_free_elems(&cfg->demod->dumper, free);
+  list2_free_elems(&cfg->demod->dumper, free);
 
-  list_free_elems(&cfg->demod->r_devs, (list_elem_free_fn)free_protocol);
+  list2_free_elems(&cfg->demod->r_devs, (list2_elem_free_fn)free_protocol);
 
   if (cfg->demod->am_analyze)
     am_analyze_free(cfg->demod->am_analyze);
 
   pulse_detect_free(cfg->demod->pulse_detect);
 
-//  list_free_elems(&cfg->raw_handler, (list_elem_free_fn)raw_output_free);
+//  list2_free_elems(&cfg->raw_handler, (list2_elem_free_fn)raw_output_free);
 
   r_logger_set_log_handler(NULL, NULL);
 
-  list_free_elems(&cfg->output_handler, (list_elem_free_fn)data_output_free);
+  list2_free_elems(&cfg->output_handler, (list2_elem_free_fn)data_output_free);
 
-//  list_free_elems(&cfg->data_tags, (list_elem_free_fn)data_tag_free);
+//  list2_free_elems(&cfg->data_tags, (list2_elem_free_fn)data_tag_free);
 
-  list_free_elems(&cfg->in_files, NULL);
+  list2_free_elems(&cfg->in_files, NULL);
 
   free(cfg->demod);
 
@@ -282,7 +282,7 @@ void register_protocol(r_cfg_t* cfg, r_device* r_dev, char* arg) {
   p->output_fn = data_acquired_handler;
   p->output_ctx = cfg;
 
-  list_push(&cfg->demod->r_devs, p);
+  list2_push(&cfg->demod->r_devs, p);
 
   if (cfg->verbosity >= LOG_INFO) {
     fprintf(stderr, "Registering protocol [%u] \"%s\"\n", r_dev->protocol_num,
@@ -302,7 +302,7 @@ void unregister_protocol(r_cfg_t *cfg, r_device *r_dev) {
        ++i) { // list might contain NULLs
     r_device *p = cfg->demod->r_devs.elems[i];
     if (!strcmp(p->name, r_dev->name)) {
-      list_remove(&cfg->demod->r_devs, i, (list_elem_free_fn)free_protocol);
+      list2_remove(&cfg->demod->r_devs, i, (list2_elem_free_fn)free_protocol);
       i--; // so we don't skip the next elem now shifted down
     }
   }
@@ -397,37 +397,37 @@ char *time_pos_str(r_cfg_t *cfg, unsigned samples_ago, char *buf) {
 // "snr", "noise" are used by meta report option
 /*
 char const **well_known_output_fields(r_cfg_t *cfg) {
-  list_t field_list = {0};
-  list_ensure_size(&field_list, 15);
+  list2_t field_list = {0};
+  list2_ensure_size(&field_list, 15);
 
-  list_push(&field_list, "time");
-  list_push(&field_list, "msg");
-  list_push(&field_list, "codes");
+  list2_push(&field_list, "time");
+  list2_push(&field_list, "msg");
+  list2_push(&field_list, "codes");
 
   if (cfg->verbose_bits)
-    list_push(&field_list, "bits");
+    list2_push(&field_list, "bits");
 
   for (void **iter = cfg->data_tags.elems; iter && *iter; ++iter) {
     data_tag_t *tag = *iter;
     if (tag->key) {
-      list_push(&field_list, (void *)tag->key);
+      list2_push(&field_list, (void *)tag->key);
     } else {
-      list_push_all(&field_list, (void **)tag->includes);
+      list2_push_all(&field_list, (void **)tag->includes);
     }
   }
 
   if (cfg->report_protocol)
-    list_push(&field_list, "protocol");
+    list2_push(&field_list, "protocol");
   if (cfg->report_description)
-    list_push(&field_list, "description");
+    list2_push(&field_list, "description");
   if (cfg->report_meta) {
-    list_push(&field_list, "mod");
-    list_push(&field_list, "freq");
-    list_push(&field_list, "freq1");
-    list_push(&field_list, "freq2");
-    list_push(&field_list, "rssi");
-    list_push(&field_list, "snr");
-    list_push(&field_list, "noise");
+    list2_push(&field_list, "mod");
+    list2_push(&field_list, "freq");
+    list2_push(&field_list, "freq1");
+    list2_push(&field_list, "freq2");
+    list2_push(&field_list, "rssi");
+    list2_push(&field_list, "snr");
+    list2_push(&field_list, "noise");
   }
 
   return (char const **)field_list.elems;
@@ -485,17 +485,17 @@ static char const **convert_csv_fields(r_cfg_t *cfg, char const **fields) {
 // find the fields output for CSV
 char const **determine_csv_fields(r_cfg_t *cfg, char const *const *well_known,
                                   int *num_fields) {
-  list_t field_list = {0};
-  list_ensure_size(&field_list, 100);
+  list2_t field_list = {0};
+  list2_ensure_size(&field_list, 100);
 
   // always add well-known fields
-  list_push_all(&field_list, (void **)well_known);
+  list2_push_all(&field_list, (void **)well_known);
 
-  list_t *r_devs = &cfg->demod->r_devs;
+  list2_t *r_devs = &cfg->demod->r_devs;
   for (void **iter = r_devs->elems; iter && *iter; ++iter) {
     r_device *r_dev = *iter;
     if (r_dev->fields)
-      list_push_all(&field_list, (void **)r_dev->fields);
+      list2_push_all(&field_list, (void **)r_dev->fields);
     else
       fprintf(stderr,
               "rtl_433: warning: %u \"%s\" does not support CSV output\n",
@@ -510,7 +510,7 @@ char const **determine_csv_fields(r_cfg_t *cfg, char const *const *well_known,
 
 */
 
-int run_ook_demods(list_t* r_devs, pulse_data_t* pulse_data) {
+int run_ook_demods(list2_t* r_devs, pulse_data_t* pulse_data) {
   int p_events = 0;
 
   unsigned next_priority = 0; // next smallest on each loop through decoders
@@ -591,7 +591,7 @@ int run_ook_demods(list_t* r_devs, pulse_data_t* pulse_data) {
   return p_events;
 }
 
-int run_fsk_demods(list_t* r_devs, pulse_data_t* fsk_pulse_data) {
+int run_fsk_demods(list2_t* r_devs, pulse_data_t* fsk_pulse_data) {
   int p_events = 0;
 
   unsigned next_priority = 0; // next smallest on each loop through decoders
@@ -991,10 +991,10 @@ void data_acquired_handler(r_device* r_dev, data_t* data) {
 // report active devices, 3: report all
 /*
 data_t *create_report_data(r_cfg_t *cfg, int level) {
-  list_t *r_devs = &cfg->demod->r_devs;
+  list2_t *r_devs = &cfg->demod->r_devs;
   data_t *data;
-  list_t dev_data_list = {0};
-  list_ensure_size(&dev_data_list, r_devs->len);
+  list2_t dev_data_list = {0};
+  list2_ensure_size(&dev_data_list, r_devs->len);
 
   for (void **iter = r_devs->elems; iter && *iter; ++iter) {
     r_device *r_dev = *iter;
@@ -1026,7 +1026,7 @@ data_t *create_report_data(r_cfg_t *cfg, int level) {
       data_append(data, "fail_sanity", "", DATA_INT,
                   r_dev->decode_fails[-DECODE_FAIL_SANITY], NULL);
 
-    list_push(&dev_data_list, data);
+    list2_push(&dev_data_list, data);
   }
 
   data = data_make("count", "", DATA_INT, cfg->frames_count, "fsk", "",
@@ -1042,12 +1042,12 @@ data_t *create_report_data(r_cfg_t *cfg, int level) {
       "frames", "", DATA_DATA, data, "stats", "", DATA_ARRAY,
       data_array(dev_data_list.len, DATA_DATA, dev_data_list.elems), NULL);
 
-  list_free_elems(&dev_data_list, NULL);
+  list2_free_elems(&dev_data_list, NULL);
   return data;
 }
 
 void flush_report_data(r_cfg_t *cfg) {
-  list_t *r_devs = &cfg->demod->r_devs;
+  list2_t *r_devs = &cfg->demod->r_devs;
 
   time(&cfg->frames_since);
   cfg->frames_count = 0;
@@ -1122,13 +1122,13 @@ static FILE* fopen_output(char* param) {
 
 void add_json_output(r_cfg_t *cfg, char *param) {
   int log_level = lvlarg_param(&param, 0);
-  list_push(&cfg->output_handler,
+  list2_push(&cfg->output_handler,
             data_output_json_create(log_level, fopen_output(param)));
 }
 
 void add_csv_output(r_cfg_t *cfg, char *param) {
   int log_level = lvlarg_param(&param, 0);
-  list_push(&cfg->output_handler,
+  list2_push(&cfg->output_handler,
             data_output_csv_create(log_level, fopen_output(param)));
 }
 */
@@ -1151,24 +1151,24 @@ void start_outputs(r_cfg_t *cfg, char const *const *well_known) {
 
 void add_log_output(r_cfg_t* cfg, char* param) {
   int log_level = lvlarg_param(&param, LOG_TRACE);
-  list_push(&cfg->output_handler,
+  list2_push(&cfg->output_handler,
             data_output_log_create(log_level, fopen_output(param)));
 }
 
 /*
 void add_kv_output(r_cfg_t *cfg, char *param) {
   int log_level = lvlarg_param(&param, LOG_TRACE);
-  list_push(&cfg->output_handler,
+  list2_push(&cfg->output_handler,
             data_output_kv_create(log_level, fopen_output(param)));
 }
 
 void add_mqtt_output(r_cfg_t *cfg, char *param) {
-  list_push(&cfg->output_handler,
+  list2_push(&cfg->output_handler,
             data_output_mqtt_create(get_mgr(cfg), param, cfg->dev_query));
 }
 
 void add_influx_output(r_cfg_t *cfg, char *param) {
-  list_push(&cfg->output_handler,
+  list2_push(&cfg->output_handler,
             data_output_influx_create(get_mgr(cfg), param));
 }
 
@@ -1183,7 +1183,7 @@ void add_syslog_output(r_cfg_t *cfg, char *param) {
   print_logf(LOG_CRITICAL, "Syslog UDP", "Sending datagrams to %s port %s",
              host, port);
 
-  list_push(&cfg->output_handler,
+  list2_push(&cfg->output_handler,
             data_output_syslog_create(log_level, host, port));
 }
 
@@ -1198,19 +1198,19 @@ void add_http_output(r_cfg_t *cfg, char *param) {
   print_logf(LOG_CRITICAL, "HTTP server", "Starting HTTP server at %s port %s",
              host, port);
 
-  list_push(&cfg->output_handler,
+  list2_push(&cfg->output_handler,
             data_output_http_create(get_mgr(cfg), host, port, cfg));
 }
 
 void add_trigger_output(r_cfg_t *cfg, char *param) {
   // Note: no log_level, we never trigger on logs.
-  list_push(&cfg->output_handler,
+  list2_push(&cfg->output_handler,
             data_output_trigger_create(fopen_output(param)));
 }
 
 void add_null_output(r_cfg_t *cfg, char *param) {
   UNUSED(param);
-  list_push(&cfg->output_handler, NULL);
+  list2_push(&cfg->output_handler, NULL);
 }
 
 void add_rtltcp_output(r_cfg_t *cfg, char *param) {
@@ -1223,7 +1223,7 @@ void add_rtltcp_output(r_cfg_t *cfg, char *param) {
   print_logf(LOG_CRITICAL, "rtl_tcp server",
              "Starting rtl_tcp server at %s port %s", host, port);
 
-  list_push(&cfg->raw_handler,
+  list2_push(&cfg->raw_handler,
             raw_output_rtltcp_create(host, port, extra, cfg));
 }
 */
@@ -1276,7 +1276,7 @@ void add_dumper(r_cfg_t *cfg, char const *spec, int overwrite) {
   file_info_t *dumper = calloc(1, sizeof(*dumper));
   if (!dumper)
     FATAL_CALLOC("add_dumper()");
-  list_push(&cfg->demod->dumper, dumper);
+  list2_push(&cfg->demod->dumper, dumper);
 
   file_info_parse_filename(dumper, spec);
   if (strcmp(dumper->path, "-") == 0) {
@@ -1304,10 +1304,10 @@ void add_dumper(r_cfg_t *cfg, char const *spec, int overwrite) {
 }
 
 void add_infile(r_cfg_t *cfg, char *in_file) {
-  list_push(&cfg->in_files, in_file);
+  list2_push(&cfg->in_files, in_file);
 }
 
 void add_data_tag(struct r_cfg *cfg, char *param) {
-  list_push(&cfg->data_tags, data_tag_create(param, get_mgr(cfg)));
+  list2_push(&cfg->data_tags, data_tag_create(param, get_mgr(cfg)));
 }
 */
