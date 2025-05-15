@@ -33,7 +33,7 @@
     defined(RF_MODULE_MOSI) && defined(RF_MODULE_CS)
 #  include <SPI.h>
 #  if CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32S3
-SPIClass newSPI(FSPI);
+SPIClass newSPI(HSPI);
 #  else
 SPIClass newSPI(VSPI);
 #  endif
